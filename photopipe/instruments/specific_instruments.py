@@ -456,4 +456,62 @@ class rimas(instrument):
         return file_format  
 
 
-instrument_dict = {'ratir': ratir(), 'lmi': lmi(), 'rimas': rimas()}
+class prime(instrument):
+    def __init__(self):
+        instrument.__init__(self, 'prime', 4)
+
+    def has_cam_bias(self, idx):
+        return False
+    
+    def has_cam_dark(self, idx):
+        return True
+    
+    def change_header_keywords(self, h, cam):
+        h['GAIN']
+        pass
+
+    def slice(self, cam):
+        return np.s_[4:4092, 4:4092]
+
+    def is_cam_split(self, idx):
+        return False
+
+    def get_cam_sat(self, h, idx):
+        return h['SATURATE']
+
+    def get_cam_gain(self, h, idx):
+        return h['GAIN']
+
+    def get_filter(self, h, cam):
+        f1 = h["FILTER1"].upper()
+        f2 = h["FILTER2"].upper()
+
+        if f1 == "OPEN":
+            h['FILTER'] = f2
+        elif f2 == "OPEN":
+            h['FILTER'] = f1
+        elif f1 == 'NB':
+            nb_dict = {
+                'Y': 'NB1063',
+                'J': 'NB1243',
+                'H': 'NB1630'
+            }
+            return nb_dict[f2]
+        else:
+            h['FILTER'] = "%s-%s" % (f1, f2)
+
+        return h['FILTER']
+
+    def possible_filters(self):
+        filters = ('H', 'K', 'Y', 'Z', 'NB1063', 'NB1243', 'NB1630')
+        return filters
+
+    def get_centered_filter(self, h, idx):
+        return self.get_filter(h, idx)
+
+    def original_file_format(self):
+        file_format = '????????C?.fits'
+        return file_format
+
+
+instrument_dict = {'ratir': ratir(), 'lmi': lmi(), 'rimas': rimas(), 'prime': prime()}
